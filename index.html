@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Poses Monterrey</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600&family=Big+Shoulders+Display:wght@600;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Plan: hoja de contactos nocturna. Marcos numerados con siluetas; visor a pantalla completa.
+     Un solo tema oscuro a propósito: es una app de cámara. */
+  --sierra:#121920;      /* fondo: la sierra de noche */
+  --sierra-2:#1b2530;    /* marcos y paneles */
+  --linea:#33424f;       /* bordes, suelo punteado */
+  --arena:#ede4d3;       /* texto y siluetas */
+  --bruma:#93a3b1;       /* texto secundario */
+  --faro:#f4602c;        /* acento: bermellón del Faro del Comercio */
+  --display:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;
+  --body:"Albert Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;background:var(--sierra);color:var(--arena);font-family:var(--body);font-size:16px;line-height:1.45;-webkit-text-size-adjust:100%}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer;-webkit-tap-highlight-color:transparent}
+:focus-visible{outline:2px solid var(--faro);outline-offset:2px}
+
+.page{max-width:920px;margin:0 auto;padding:20px 16px 48px;display:flex;flex-direction:column;gap:18px}
+
+/* Encabezado */
+.top{display:flex;flex-wrap:wrap;align-items:flex-end;gap:4px 14px}
+.eyebrow{flex:0 0 100%;margin:0;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--bruma)}
+h1{margin:0;font-family:var(--display);font-weight:800;font-size:clamp(40px,13vw,84px);line-height:.88;max-width:100%;letter-spacing:.01em;text-transform:uppercase}
+h1 span{color:var(--faro)}
+.cerro{flex:1 1 96px;min-width:0;max-width:220px;height:auto;display:block;margin:0 0 6px auto;color:var(--faro)}
+.lede{flex:0 0 100%;margin:6px 0 0;color:var(--bruma);max-width:46ch;font-size:15px}
+
+/* Filtros */
+.filters{display:flex;flex-direction:column;gap:12px}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--linea);border-radius:10px;overflow:hidden}
+.seg button{background:none;border:0;padding:11px 6px;font-family:var(--display);font-weight:600;font-size:19px;letter-spacing:.06em;text-transform:uppercase;color:var(--bruma)}
+.seg button+button{border-left:1px solid var(--linea)}
+.seg button[aria-pressed="true"]{background:var(--arena);color:var(--sierra)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:2px 16px 6px;margin:0 -16px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chips button{flex:none;background:none;border:1px solid var(--linea);border-radius:999px;padding:8px 14px;font-size:14px;font-weight:500;color:var(--arena);white-space:nowrap}
+.chips button[aria-pressed="true"]{background:var(--faro);border-color:var(--faro);color:#1a0d06;font-weight:600}
+
+/* Ficha del lugar */
+.place{border-left:3px solid var(--faro);padding:2px 0 2px 14px;display:flex;flex-direction:column;gap:2px}
+.place h2{margin:0;font-family:var(--display);font-weight:800;font-size:30px;line-height:1;text-transform:uppercase;letter-spacing:.02em;text-wrap:balance}
+.place p{margin:0;font-size:14px;color:var(--bruma)}
+.place p b{color:var(--arena);font-weight:600}
+
+/* Hoja de contactos */
+.sheet{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px 12px}
+.card{background:none;border:0;padding:0;text-align:left;display:flex;flex-direction:column;gap:7px;min-width:0}
+.frame{position:relative;aspect-ratio:4/5;background:var(--sierra-2);border:1px solid var(--linea);border-radius:4px;overflow:hidden;transition:border-color .15s}
+.card:hover .frame,.card:focus-visible .frame{border-color:var(--faro)}
+.frame svg{position:absolute;inset:8% 6% 5%;width:88%;height:87%}
+.num{position:absolute;top:6px;left:8px;font-family:var(--display);font-weight:600;font-size:17px;color:var(--faro);letter-spacing:.04em;font-variant-numeric:tabular-nums}
+.tag{position:absolute;top:8px;right:8px;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--bruma)}
+.card h3{margin:0;font-family:var(--display);font-weight:800;font-size:21px;line-height:1.02;text-transform:uppercase;letter-spacing:.02em;overflow-wrap:anywhere}
+.card p{margin:0;font-size:13px;line-height:1.35;color:var(--bruma)}
+.empty{grid-column:1/-1;color:var(--bruma);margin:0}
+.foot{font-size:13px;color:var(--bruma);margin:6px 0 0;max-width:60ch}
+
+/* Visor */
+.visor{position:fixed;inset:0;z-index:10;background:#090d11;display:grid;grid-template-rows:auto minmax(0,1fr) auto auto}
+.bar{display:grid;grid-template-columns:auto 1fr auto auto;align-items:center;gap:6px;padding:8px 10px}
+.bar .name{min-width:0;padding:0 4px}
+.bar .name small{display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--bruma)}
+.bar .name strong{display:block;font-family:var(--display);font-weight:800;font-size:20px;line-height:1.05;text-transform:uppercase;letter-spacing:.02em;overflow-wrap:anywhere}
+.ib{background:var(--sierra-2);border:1px solid var(--linea);border-radius:8px;min-width:42px;height:42px;padding:0 12px;font-size:14px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.ib[aria-pressed="true"]{background:var(--arena);color:var(--sierra);border-color:var(--arena)}
+.ib.go{background:var(--faro);border-color:var(--faro);color:#1a0d06}
+.ib svg{width:18px;height:18px;flex:none}
+
+.stage{position:relative;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;background:linear-gradient(#22303d 0%,#31404c 58%,#1a222b 58%,#141b22 100%)}
+.stage video,.stage img.bg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.stage video{object-fit:cover}
+.stage video.mirror{transform:scaleX(-1)}
+.stage img.bg{object-fit:contain;background:#090d11}
+.gridl{position:absolute;inset:0;pointer-events:none;background:
+  linear-gradient(to right,transparent calc(33.33% - .5px),rgba(255,255,255,.28) calc(33.33% - .5px),rgba(255,255,255,.28) calc(33.33% + .5px),transparent calc(33.33% + .5px),transparent calc(66.66% - .5px),rgba(255,255,255,.28) calc(66.66% - .5px),rgba(255,255,255,.28) calc(66.66% + .5px),transparent calc(66.66% + .5px)),
+  linear-gradient(to bottom,transparent calc(33.33% - .5px),rgba(255,255,255,.28) calc(33.33% - .5px),rgba(255,255,255,.28) calc(33.33% + .5px),transparent calc(33.33% + .5px),transparent calc(66.66% - .5px),rgba(255,255,255,.28) calc(66.66% - .5px),rgba(255,255,255,.28) calc(66.66% + .5px),transparent calc(66.66% + .5px))}
+.corner{position:absolute;width:22px;height:22px;border:2px solid var(--faro);pointer-events:none}
+.corner.a{top:10px;left:10px;border-right:0;border-bottom:0}
+.corner.b{top:10px;right:10px;border-left:0;border-bottom:0}
+.corner.c{bottom:10px;left:10px;border-right:0;border-top:0}
+.corner.d{bottom:10px;right:10px;border-left:0;border-top:0}
+#ov{position:absolute;left:0;top:0;opacity:.6;pointer-events:none;will-change:transform}
+.hint{position:absolute;left:12px;right:12px;top:14px;margin:0 auto;max-width:36ch;text-align:center;font-size:13px;line-height:1.35;color:var(--arena);background:rgba(9,13,17,.72);padding:8px 12px;border-radius:8px;pointer-events:none}
+.shutter{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);width:68px;height:68px;border-radius:50%;border:4px solid #fff;background:rgba(255,255,255,.25);padding:0}
+.shutter::after{content:"";position:absolute;inset:5px;border-radius:50%;background:#fff}
+.shutter:active::after{inset:9px}
+.shot{position:absolute;left:10px;right:10px;bottom:10px;display:flex;align-items:center;gap:10px;background:rgba(9,13,17,.88);border:1px solid var(--linea);border-radius:10px;padding:8px}
+.shot img{width:52px;height:52px;object-fit:cover;border-radius:6px;flex:none}
+.shot span{flex:1;font-size:14px;min-width:0}
+
+.tools{display:flex;align-items:center;gap:8px;padding:8px 10px;flex-wrap:wrap}
+.size{flex:1 1 150px;display:flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--bruma)}
+.size input{flex:1;min-width:0;accent-color:var(--faro);height:32px}
+.info{padding:2px 12px 14px;max-height:30vh;overflow-y:auto;display:flex;flex-direction:column;gap:10px}
+.src{display:flex;gap:8px;flex-wrap:wrap}
+.src .ib{flex:1 1 auto}
+.where{margin:0;font-size:14px;border-left:3px solid var(--faro);padding-left:10px}
+.where b{display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--bruma);font-weight:600}
+.how{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:5px;font-size:14px}
+.how li{display:grid;grid-template-columns:22px 1fr;gap:4px}
+.how li i{font-style:normal;font-family:var(--display);font-weight:600;color:var(--faro);font-size:16px;line-height:1.3}
+.file{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main class="page">
+  <header class="top">
+    <p class="eyebrow">Guía de poses para tu viaje</p>
+    <h1>Poses<br><span>Monterrey</span></h1>
+    <svg class="cerro" viewBox="0 0 220 74" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+      <path d="M2 70 L24 56 L44 50 L62 34 L76 14 L84 10 L92 20 L104 34 L116 32 L128 18 L138 8 L146 12 L156 28 L172 44 L194 56 L218 68" />
+      <path d="M0 73 H220" stroke-dasharray="2 5" opacity=".5"/>
+    </svg>
+    <p class="lede">Elige quién posa y en qué lugar. Toca una pose para abrir el visor y acomodar la silueta sobre tu encuadre.</p>
+  </header>
+
+  <section class="filters" aria-label="Filtros">
+    <div class="seg" id="who" role="group" aria-label="Quién posa">
+      <button type="button" data-who="h">Hombre</button>
+      <button type="button" data-who="m">Mujer</button>
+      <button type="button" data-who="p">Pareja</button>
+    </div>
+    <div class="chips" id="places" role="group" aria-label="Lugar"></div>
+  </section>
+
+  <section class="place" id="place" hidden></section>
+  <section class="sheet" id="sheet" aria-label="Poses"></section>
+  <p class="foot" id="foot"></p>
+</main>
+
+<div class="visor" id="visor" hidden role="dialog" aria-modal="true" aria-label="Visor de pose">
+  <div class="bar">
+    <button class="ib" id="close" type="button" aria-label="Cerrar visor">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+    <div class="name"><small id="vnum"></small><strong id="vname"></strong></div>
+    <button class="ib" id="prev" type="button" aria-label="Pose anterior">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+    </button>
+    <button class="ib" id="next" type="button" aria-label="Pose siguiente">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>
+    </button>
+  </div>
+
+  <div class="stage" id="stage">
+    <video id="video" playsinline muted autoplay hidden></video>
+    <img class="bg" id="photo" alt="" hidden>
+    <div class="gridl" id="gridl"></div>
+    <i class="corner a"></i><i class="corner b"></i><i class="corner c"></i><i class="corner d"></i>
+    <svg id="ov" aria-hidden="true"></svg>
+    <p class="hint" id="hint"></p>
+    <button class="shutter" id="shutter" type="button" aria-label="Tomar foto" hidden></button>
+    <div class="shot" id="shot" hidden>
+      <img id="shotimg" alt="Foto recién tomada">
+      <span>Foto lista, sin la silueta.</span>
+      <button class="ib go" id="save" type="button">Guardar</button>
+      <button class="ib" id="discard" type="button" aria-label="Descartar foto">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="tools">
+    <label class="size" for="tam">Tamaño
+      <input id="tam" type="range" min="0.3" max="2.4" step="0.01" value="1">
+    </label>
+    <button class="ib" id="flip" type="button" aria-pressed="false">Voltear</button>
+    <button class="ib" id="gridb" type="button" aria-pressed="true">Tercios</button>
+    <button class="ib" id="swap" type="button" hidden>Girar cámara</button>
+  </div>
+
+  <div class="info">
+    <div class="src" id="src"></div>
+    <p class="where" id="vwhere" hidden></p>
+    <ol class="how" id="vhow"></ol>
+  </div>
+  <input class="file" id="camInput" type="file" accept="image/*" capture="environment" tabindex="-1" aria-hidden="true">
+  <input class="file" id="galInput" type="file" accept="image/*" tabindex="-1" aria-hidden="true">
+</div>
+
+<script>
+/*FIG-START*/
+/* ---------- Maniquí: cada pose son ángulos (0 = hacia abajo, + = derecha de la pantalla) ---------- */
+const SEG={head:10.2,neck:4.5,torso:50,ua:27,fa:25,th:41,sh:40,foot:9};
+const BODY={h:{sw:16.5,hw:9.5,leg:9.6,arm:7.6,k:1,waist:.06},m:{sw:13,hw:11,leg:8.4,arm:6.2,k:.94,waist:.3}};
+const D=Math.PI/180;
+const dir=(a,l)=>[Math.sin(a*D)*l,Math.cos(a*D)*l];
+const add=(p,q)=>[p[0]+q[0],p[1]+q[1]];
+const mix=(p,q,t)=>[p[0]+(q[0]-p[0])*t,p[1]+(q[1]-p[1])*t];
+
+function joints(f){
+  const b=BODY[f.g],n=f.len||{},w=f.w??1,lean=f.lean||0;
+  const shC=dir(180-lean,SEG.torso*(n.torso??1));
+  const pair=(c,half,t)=>{const v=[half*Math.cos(t*D),half*Math.sin(t*D)];return [[c[0]-v[0],c[1]-v[1]],add(c,v)]};
+  const [hipL,hipR]=pair([0,0],b.hw*w,f.ht||0);
+  const [shL,shR]=pair(shC,b.sw*w,(f.st||0)+lean);
+  const headC=add(shC,dir(180-lean-(f.hd||0),SEG.neck+SEG.head));
+  const limb=(o,a,k1,k2,s1,s2)=>{const m=add(o,dir(a[0],SEG[k1]*(n[s1]??1)));return [o,m,add(m,dir(a[1],SEG[k2]*(n[s2]??1)))]};
+  const A=f.arms||[[-5,0],[5,0]],G=f.legs||[[-4,0],[4,0]];
+  const armL=limb(shL,A[0],'ua','fa','uaL','faL'),armR=limb(shR,A[1],'ua','fa','uaR','faR');
+  const legL=limb(hipL,G[0],'th','sh','thL','shL'),legR=limb(hipR,G[1],'th','sh','thR','shR');
+  const fd=f.feet||(f.face?[f.face,f.face]:[-.6,.6]);
+  const toeL=add(legL[2],[fd[0]*SEG.foot,1]),toeR=add(legR[2],[fd[1]*SEG.foot,1]);
+  const mid=mix(shC,[0,0],.6);
+  const wL=mix(mix(shL,hipL,.6),mid,b.waist),wR=mix(mix(shR,hipR,.6),mid,b.waist);
+  const torso=[shL,shR,wR,hipR,hipL,wL];
+  const skirt=f.skirt?[wL,wR,[30,36],[-30,36]]:null;
+  const low=Math.max(legL[2][1],legR[2][1],legL[1][1],legR[1][1],0)+b.leg*.5+1;
+  return {hipL,hipR,shC,headC,armL,armR,legL,legR,toeL,toeR,torso,skirt,ground:low+(f.lift||0)};
+}
+
+function figure(f){
+  const b=BODY[f.g],k=b.k*(f.k||1),J=joints(f),dx=f.dx||0,face=f.face||0;
+  const T=p=>[+(p[0]*k+dx).toFixed(1),+((p[1]-J.ground)*k).toFixed(1)];
+  const j={};
+  for(const key in J){const v=J[key];if(v===null||typeof v==='number')continue;j[key]=Array.isArray(v[0])?v.map(T):T(v);}
+  const hr=13*k;
+  const pts=[...j.armL,...j.armR,...j.legL,...j.legR,j.toeL,j.toeR,...j.torso,...(j.skirt||[]),[j.headC[0]-hr,j.headC[1]-hr],[j.headC[0]+hr,j.headC[1]+hr]];
+  const draw=(x,c,e)=>{
+    const E=(a,w)=>e?`<polyline points="${a.map(p=>p.join(',')).join(' ')}" fill="none" stroke="${e}" stroke-width="${(w*k+2.6).toFixed(1)}" stroke-linecap="round" stroke-linejoin="round"/>`:'';
+    const S=w=>`fill="none" stroke="${c}" stroke-width="${(w*k+x).toFixed(1)}" stroke-linecap="round" stroke-linejoin="round"`;
+    const F=w=>`fill="${c}" stroke="${c}" stroke-width="${(w*k+x).toFixed(1)}" stroke-linejoin="round"`;
+    const pl=a=>a.map(p=>p.join(',')).join(' ');
+    let s='';
+    if(f.g==='m'){const h0=[j.headC[0]-face*2.5*k,j.headC[1]-1*k];s+=`<polyline points="${pl([h0,[h0[0],+(h0[1]+15*k).toFixed(1)]])}" ${S(21.5)}/>`;}
+    s+=`<polyline points="${pl(j.legL)}" ${S(b.leg)}/>${E(j.legR,b.leg)}<polyline points="${pl(j.legR)}" ${S(b.leg)}/>`;
+    s+=`<polyline points="${pl([j.legL[2],j.toeL])}" ${S(b.leg*.8)}/><polyline points="${pl([j.legR[2],j.toeR])}" ${S(b.leg*.8)}/>`;
+    s+=`<polygon points="${pl(j.torso)}" ${F(b.leg*.9)}/>`;
+    if(j.skirt)s+=`<polygon points="${pl(j.skirt)}" ${F(4)}/>`;
+    s+=`<polyline points="${pl([j.shC,j.headC])}" ${S(6.5)}/>`;
+    s+=`${E(j.armL,b.arm)}<polyline points="${pl(j.armL)}" ${S(b.arm)}/>${E(j.armR,b.arm)}<polyline points="${pl(j.armR)}" ${S(b.arm)}/>`;
+    for(const a of [j.armL,j.armR])s+=`<circle cx="${a[2][0]}" cy="${a[2][1]}" r="${(b.arm*.62*k).toFixed(1)}" fill="${c}" stroke="${c}" stroke-width="${x}"/>`;
+    s+=`<ellipse cx="${j.headC[0]}" cy="${j.headC[1]}" rx="${(9*k).toFixed(1)}" ry="${(10.3*k).toFixed(1)}" transform="rotate(${(f.lean||0)+(f.hd||0)} ${j.headC[0]} ${j.headC[1]})" fill="${c}" stroke="${c}" stroke-width="${x}"/>`;
+    if(face)s+=`<circle cx="${(j.headC[0]+face*9*k).toFixed(1)}" cy="${(j.headC[1]+1.5*k).toFixed(1)}" r="${(2.2*k).toFixed(1)}" fill="${c}" stroke="${c}" stroke-width="${x}"/>`;
+    return s;
+  };
+  return {j,k,pts,draw,lift:f.lift||0};
+}
+
+function build(p,g){
+  const figs=(p.figs||[{...p.fig,g}]).map(figure),f0=figs[0];
+  let pts=figs.flatMap(f=>f.pts);
+  const extra=[];
+  for(const pr of p.props||[]){
+    if(pr.t==='seat'){const top=Math.max(f0.j.hipL[1],f0.j.hipR[1])+6*f0.k;extra.push(`M${pr.x1} 0V${top.toFixed(1)}H${pr.x2}V0`);pts.push([pr.x1,0],[pr.x2,0]);}
+    if(pr.t==='rail'){const top=Math.max(f0.j.armL[2][1],f0.j.armR[2][1])+5*f0.k;extra.push(`M${pr.x1} ${top.toFixed(1)}H${pr.x2}M${pr.x1+4} ${top.toFixed(1)}V0M${pr.x2-4} ${top.toFixed(1)}V0`);pts.push([pr.x1,0],[pr.x2,0]);}
+  }
+  const xs=pts.map(q=>q[0]),ys=pts.map(q=>q[1]);
+  const x=Math.min(...xs)-12,x2=Math.max(...xs)+12,y=Math.min(...ys)-10;
+  const lift=figs.some(f=>f.lift);
+  const deco=(c)=>`<g fill="none" stroke="${c}" stroke-width="1.6" stroke-linecap="round">`+
+    `<path d="M${(x+2).toFixed(1)} 0H${(x2-2).toFixed(1)}" stroke-dasharray="1 5"/>`+
+    extra.map(d=>`<path d="${d}" stroke-dasharray="5 4"/>`).join('')+
+    (lift?`<ellipse cx="${((x+x2)/2).toFixed(1)}" cy="0" rx="17" ry="2.6"/>`:'')+`</g>`;
+  return {x,y,w:x2-x,h:6-y,body:(x,c,e)=>figs.map(f=>f.draw(x,c,e)).join(''),deco};
+}
+
+/* ---------- Poses ---------- */
+const POSES=[
+ {id:'caminata',name:'Caminata natural',who:'hm',
+  how:['Camina hacia la cámara a paso normal y que te tomen en ráfaga.','Mirada al frente o a un lado, no al lente.','Una mano en el bolsillo, la otra suelta.'],
+  fig:{w:.85,lean:2,ht:3,st:-3,arms:[[-12,10],[15,-26]],legs:[[-9,3],[8,24]],len:{faR:.72,shR:.84}}},
+ {id:'recargado',name:'Recargado en la pared',who:'hm',
+  how:['Espalda en la pared y un pie apoyado atrás.','Cruza los brazos sin apretar.','Barbilla un poco abajo, mirada al lente.'],
+  fig:{lean:-3,ht:-3,arms:[[-20,100],[20,-104]],legs:[[-2,3],[26,-34]],len:{faL:.86,faR:.86,thR:.86,shR:.7}}},
+ {id:'espaldas',name:'De espaldas a la vista',who:'hm',
+  how:['De espaldas a la cámara, peso en una pierna.','Una mano en la cintura, la otra relajada.','Deja espacio arriba de tu cabeza para el paisaje.'],
+  fig:{ht:5,st:-4,hd:-4,arms:[[-38,50],[5,2]],legs:[[-2,-1],[11,2]]}},
+ {id:'brazos-abiertos',name:'Brazos abiertos',who:'hm',size:.55,
+  how:['Aléjate de la cámara para que el lugar se vea enorme.','Brazos arriba en V, pies separados.','Funciona de frente o de espaldas.'],
+  fig:{arms:[[-132,-148],[132,148]],legs:[[-11,-5],[11,5]]}},
+ {id:'sentado-borde',name:'Sentado al borde',who:'hm',
+  how:['Siéntate de perfil, una rodilla arriba y la otra pierna colgando.','Apoya el brazo en la rodilla y el otro atrás.','Mira hacia el paisaje, no a la cámara.'],
+  fig:{w:.45,face:1,lean:-6,arms:[[-24,-4],[42,96]],legs:[[86,6],[136,-12]]},props:[{t:'seat',x1:-30,x2:31}]},
+ {id:'cuclillas',name:'Cuclillas urbanas',who:'hm',
+  how:['Baja en cuclillas con los pies bien apoyados.','Antebrazos sobre las rodillas, manos sueltas al centro.','Cámara a la altura de tus ojos.'],
+  fig:{arms:[[-26,50],[26,-50]],legs:[[-76,13],[76,-13]],len:{torso:.8,thL:.56,thR:.56,shL:.8,shR:.8}}},
+ {id:'salto',name:'Salto',who:'hm',
+  how:['Cuenta tres y salta doblando las rodillas.','Brazos arriba y que disparen en ráfaga.','Cámara baja para que el salto se vea más alto.'],
+  fig:{lift:18,arms:[[-148,-165],[150,160]],legs:[[-34,38],[28,-52]],len:{shL:.62,shR:.62}}},
+ {id:'senalando',name:'Señalando la cima',who:'hm',
+  how:['Cuerpo de tres cuartos, un brazo señalando a lo lejos.','La otra mano en la cintura.','Mira hacia donde señalas.'],
+  fig:{w:.85,face:1,hd:6,ht:3,arms:[[-38,50],[118,124]],legs:[[-5,0],[9,3]]}},
+ {id:'mirada-arriba',name:'Mirada hacia arriba',who:'hm',
+  how:['De perfil, levanta la cara hacia la torre o la montaña.','Mano en la frente como visera.','Cámara muy baja apuntando hacia arriba.'],
+  fig:{w:.55,face:1,hd:-14,lean:-3,arms:[[-6,2],[96,-136]],legs:[[-6,0],[5,0]],len:{uaR:.7}}},
+ {id:'barandal',name:'Apoyado en el barandal',who:'hm',
+  how:['De perfil, antebrazos apoyados en el barandal.','Cruza un tobillo detrás del otro.','Mirada perdida hacia el agua o la vista.'],
+  fig:{w:.45,face:1,lean:30,hd:-16,arms:[[22,80],[30,85]],legs:[[-10,-4],[2,-18]]},props:[{t:'rail',x1:30,x2:84}]},
+ {id:'sentado-escalon',name:'Sentado en escalones',who:'hm',
+  how:['Siéntate con las rodillas abiertas y los codos encima.','Manos juntas al centro.','Inclínate un poco hacia la cámara.'],
+  fig:{arms:[[-20,62],[20,-62]],legs:[[-70,10],[70,-10]],len:{torso:.85,thL:.55,thR:.55}},props:[{t:'seat',x1:-44,x2:44}]},
+ {id:'hombro',name:'Mirada sobre el hombro',who:'hm',
+  how:['Camina alejándote y voltea por encima del hombro.','Hombros relajados, sonrisa ligera.','Que disparen justo cuando giras la cabeza.'],
+  fig:{w:.75,face:-1,hd:-7,ht:4,st:-3,arms:[[-6,2],[8,-12]],legs:[[-4,0],[9,12]],len:{shR:.9}}},
+ {id:'bolsillos',name:'Manos en los bolsillos',who:'h',
+  how:['Pies al ancho de los hombros, peso en una pierna.','Manos en los bolsillos con los pulgares afuera.','Hombros atrás, mirada al lente.'],
+  fig:{ht:3,st:-2,hd:3,arms:[[-17,24],[17,-24]],legs:[[-9,-3],[9,3]],len:{faL:.72,faR:.72}}},
+ {id:'brazos-cruzados',name:'Brazos cruzados',who:'h',
+  how:['Cruza los brazos sin apretar, hombros abajo.','Pies separados, postura firme.','Gira el cuerpo un poco y deja la cara al frente.'],
+  fig:{st:-2,arms:[[-20,100],[20,-104]],legs:[[-9,-2],[9,2]],len:{faL:.95,faR:.95}}},
+ {id:'reloj',name:'Ajustando el reloj',who:'h',
+  how:['Simula que ajustas el reloj o la manga.','Mira hacia tus manos o hacia un lado.','Un pie medio paso adelante.'],
+  fig:{w:.92,face:-1,hd:-4,arms:[[-16,72],[16,-78]],legs:[[-5,0],[8,4]],len:{faL:.8,faR:.8}}},
+ {id:'chamarra',name:'Chamarra al hombro',who:'h',
+  how:['Chamarra colgada al hombro con un dedo.','La otra mano en el bolsillo.','Peso en una pierna, mirada fuera de cámara.'],
+  fig:{ht:4,st:-2,face:-1,arms:[[-17,24],[50,-150]],legs:[[-4,0],[10,4]],len:{faL:.72}}},
+ {id:'cadera',name:'Mano en la cintura',who:'m',
+  how:['Peso en una pierna y la cadera hacia ese lado.','Una mano en la cintura, codo hacia afuera.','Cruza la otra pierna al frente, de puntita.'],
+  fig:{ht:-5,st:4,hd:4,arms:[[-40,54],[8,-4]],legs:[[3,-2],[-9,13]]}},
+ {id:'cabello',name:'Mano al cabello',who:'m',
+  how:['Una mano al cabello, codo arriba.','El otro brazo cruza la cintura.','Inclina la cabeza un poco hacia el brazo levantado.'],
+  fig:{ht:-4,hd:6,arms:[[-10,80],[125,-110]],legs:[[2,-2],[-8,13]],len:{faL:.9}}},
+ {id:'giro',name:'Giro con movimiento',who:'m',
+  how:['Gira despacio con los brazos abiertos.','Con falda o vestido suelto se nota más el movimiento.','Que disparen en ráfaga y escoges la mejor.'],
+  fig:{skirt:1,lean:-4,hd:-8,arms:[[-66,-84],[74,58]],legs:[[-1,0],[20,-62]],len:{shR:.7}}},
+ {id:'paso-cruzado',name:'Paso cruzado',who:'m',
+  how:['Cruza un pie delante del otro.','Manos juntas al frente sosteniendo bolsa o sombrero.','Hombros relajados, cabeza ligeramente inclinada.'],
+  fig:{hd:5,st:2,arms:[[-9,31],[9,-31]],legs:[[9,3],[-11,-2]]}},
+ {id:'de-la-mano',name:'Caminando de la mano',who:'p',
+  how:['Caminen de la mano alejándose de la cámara.','Pasos lentos y al mismo ritmo.','Uno puede voltear a ver al otro.'],
+  figs:[{g:'h',dx:-29,arms:[[-7,4],[17,17]],legs:[[-5,0],[7,15]],len:{shR:.88}},
+        {g:'m',dx:29,face:-1,hd:-5,arms:[[-19,-19],[6,-3]],legs:[[-7,-14],[4,0]],len:{shL:.88}}]},
+ {id:'frente-a-frente',name:'Frente a frente',who:'p',
+  how:['De perfil a la cámara, uno frente al otro.','Tómense de las manos abajo, frentes casi juntas.','Ojos cerrados o mirándose, no al lente.'],
+  figs:[{g:'h',dx:-27,w:.5,face:1,lean:7,hd:8,arms:[[10,38],[22,44]],legs:[[-7,0],[3,0]]},
+        {g:'m',dx:27,w:.5,face:-1,lean:-7,hd:-8,arms:[[-22,-44],[-10,-38]],legs:[[-3,0],[7,0]]}]},
+ {id:'abrazo-vista',name:'Abrazo viendo la vista',who:'p',
+  how:['De espaldas a la cámara, abrazados de lado.','Ella recarga la cabeza en su hombro.','Dejen que el paisaje llene el resto del cuadro.'],
+  figs:[{g:'h',dx:-17,ht:2,arms:[[-6,3],[42,78]],legs:[[-6,0],[5,0]],len:{faR:.3}},
+        {g:'m',dx:15,lean:-5,hd:-14,arms:[[-56,-82],[6,-2]],legs:[[-3,0],[6,0]],len:{uaL:.9,faL:.5}}]},
+ {id:'vuelta',name:'Vuelta de baile',who:'p',
+  how:['Él levanta la mano y ella gira debajo.','Que disparen en ráfaga durante la vuelta.','Rían, la foto sale mejor en movimiento.'],
+  figs:[{g:'h',dx:-27,hd:5,arms:[[-8,6],[138,166]],legs:[[-8,-2],[7,2]]},
+        {g:'m',dx:27,skirt:1,hd:-6,arms:[[-168,170],[72,60]],legs:[[-2,0],[18,-58]],len:{shR:.7}}]}
+];
+/*FIG-END*/
+
+/* ---------- Lugares de Monterrey ---------- */
+const PLACES=[
+ {id:'fundidora',name:'Parque Fundidora',sub:'El Horno 3 y las estructuras de acero de la vieja fundidora.',
+  when:'La última hora de sol: el acero oxidado se pone naranja.',
+  picks:[
+   ['caminata','En los andadores con el Horno 3 al fondo. Cámara baja, a la altura de la cintura, para que el horno se vea enorme.'],
+   ['cuclillas','Frente a las vigas y la maquinaria antigua. El fondo industrial hace todo el trabajo.'],
+   ['recargado','En un muro de ladrillo o una columna de las naves.'],
+   ['chamarra','Junto a las chimeneas, con el cuerpo a un lado del cuadro y el acero al otro.'],
+   ['cabello','Con las estructuras metálicas desenfocadas detrás.'],
+   ['mirada-arriba','Al pie del Horno 3, mirando hacia la punta.'],
+   ['de-la-mano','Por el andador principal, alejándose hacia el Horno 3.'],
+   ['vuelta','En una explanada abierta con las chimeneas al fondo.']]},
+ {id:'santa-lucia',name:'Paseo Santa Lucía',sub:'El canal peatonal de 2.5 km que une la Macroplaza con Fundidora.',
+  when:'Al atardecer y de noche, cuando encienden luces y fuentes.',
+  picks:[
+   ['sentado-borde','En el borde del canal, con el agua y un puente detrás.'],
+   ['barandal','En el barandal de un puente peatonal, de perfil y con el canal en fuga.'],
+   ['caminata','Por el andador junto al agua. Que el canal entre al cuadro en diagonal.'],
+   ['bolsillos','Sobre un puente, centrado, con el canal detrás.'],
+   ['paso-cruzado','Frente a las fuentes o los murales del paseo.'],
+   ['frente-a-frente','A la mitad de un puente, con las luces del canal al fondo.'],
+   ['de-la-mano','Por el andador, con los reflejos del agua a un lado.']]},
+ {id:'macroplaza',name:'Macroplaza',sub:'Faro del Comercio, Fuente de Neptuno, Palacio de Gobierno y MARCO.',
+  when:'Temprano hay menos gente. Al anochecer el Faro enciende su láser.',
+  picks:[
+   ['mirada-arriba','Al pie del Faro del Comercio. Cámara casi en el suelo para que la torre naranja llene el cuadro.'],
+   ['brazos-abiertos','En la explanada, con el Cerro de la Silla asomando al fondo.'],
+   ['hombro','Caminando hacia el Palacio de Gobierno.'],
+   ['reloj','Junto a La Paloma, la escultura gigante afuera del MARCO.'],
+   ['cadera','Junto a La Paloma, la escultura gigante afuera del MARCO.'],
+   ['sentado-escalon','En las escalinatas frente a la Fuente de Neptuno.'],
+   ['vuelta','Frente a la Fuente de Neptuno.'],
+   ['abrazo-vista','De espaldas, viendo hacia el Faro y el cerro.']]},
+ {id:'barrio',name:'Barrio Antiguo',sub:'Fachadas de colores, portones viejos y calles empedradas.',
+  when:'Media mañana o media tarde, con luz suave sobre las fachadas.',
+  picks:[
+   ['recargado','En una fachada de un solo color, con el pie en la pared.'],
+   ['hombro','A media calle empedrada, volteando hacia la cámara.'],
+   ['sentado-escalon','En el escalón de una puerta antigua.'],
+   ['brazos-cruzados','Dentro del marco de un portón.'],
+   ['cadera','Dentro del marco de un portón o junto a una ventana con herrería.'],
+   ['paso-cruzado','Frente a un mural.'],
+   ['de-la-mano','Por el centro de la calle, con las fachadas en fuga.'],
+   ['frente-a-frente','Frente a una pared de color liso.']]},
+ {id:'obispado',name:'Mirador del Obispado',sub:'La bandera monumental y la vista de toda la ciudad.',
+  when:'Atardecer: la ciudad se enciende y el Cerro de la Silla queda de frente.',
+  picks:[
+   ['espaldas','En el barandal del mirador, viendo hacia el Cerro de la Silla.'],
+   ['senalando','Señalando el Cerro de la Silla, con la ciudad abajo.'],
+   ['brazos-abiertos','Bajo la bandera monumental. Aléjate para que el asta quepa completa.'],
+   ['reloj','De lado a la vista, con la ciudad desenfocada.'],
+   ['giro','En la explanada de la bandera, mejor si hay viento.'],
+   ['abrazo-vista','En el barandal, viendo la ciudad.'],
+   ['frente-a-frente','De perfil, con el Cerro de la Silla entre los dos.']]},
+ {id:'puente',name:'Puente de la Unidad',sub:'El puente atirantado entre Monterrey y San Pedro.',
+  when:'Hora azul, justo después del atardecer, con el puente iluminado.',
+  picks:[
+   ['caminata','Con el puente al fondo. Los tirantes funcionan como líneas que apuntan hacia ti.'],
+   ['hombro','De espaldas al puente, volteando a la cámara.'],
+   ['bolsillos','Centrado bajo el mástil del puente.'],
+   ['paso-cruzado','A un lado del cuadro, con el mástil al otro.'],
+   ['senalando','Señalando la punta del mástil.'],
+   ['de-la-mano','Caminando hacia el puente.'],
+   ['frente-a-frente','De perfil, con el puente iluminado entre los dos.']]},
+ {id:'chipinque',name:'Chipinque',sub:'Bosque de pinos y miradores en la sierra, arriba de San Pedro.',
+  when:'Por la mañana con cielo despejado la vista sale más limpia.',
+  picks:[
+   ['sentado-borde','En una roca o banca del mirador, de perfil a la ciudad.'],
+   ['espaldas','En el mirador, con la ciudad abajo.'],
+   ['brazos-abiertos','En un claro del sendero, con los pinos alrededor.'],
+   ['caminata','Por el sendero, entre los árboles.'],
+   ['cabello','Con el bosque detrás y luz de lado.'],
+   ['chamarra','Recargado cerca del barandal del mirador.'],
+   ['abrazo-vista','En el mirador, viendo la ciudad.'],
+   ['de-la-mano','Por el sendero, entre los pinos.']]},
+ {id:'huasteca',name:'La Huasteca',sub:'Paredes de roca gigantes en el cañón de Santa Catarina.',
+  when:'Temprano o al final de la tarde. A mediodía el sol aplana la roca.',
+  picks:[
+   ['brazos-abiertos','Aléjate bastante de la cámara: tú pequeño y la pared de roca enorme.'],
+   ['salto','A media terracería, con los picos al fondo.'],
+   ['espaldas','Viendo hacia las paredes del cañón.'],
+   ['cuclillas','Sobre una roca grande, con el cañón detrás.'],
+   ['senalando','Señalando el pico más alto.'],
+   ['giro','En el claro, con las montañas alrededor.'],
+   ['vuelta','En el camino, con las paredes de roca a los lados.'],
+   ['de-la-mano','Caminando hacia el cañón.']]},
+ {id:'santiago',name:'Santiago y Cola de Caballo',sub:'La cascada, el pueblo mágico y la Presa de la Boca.',
+  when:'Entre semana y temprano hay menos gente en la cascada.',
+  picks:[
+   ['espaldas','Frente a la cascada, de espaldas a la cámara.'],
+   ['sentado-escalon','En las escalinatas del centro de Santiago.'],
+   ['sentado-borde','En una roca junto al agua.'],
+   ['chamarra','En las calles del pueblo, con la sierra al fondo.'],
+   ['giro','En la plaza de Santiago, frente a la parroquia.'],
+   ['frente-a-frente','En el mirador, con la presa al fondo.'],
+   ['abrazo-vista','Viendo la cascada.']]}
+];
+
+/* ---------- Estado ---------- */
+const $=id=>document.getElementById(id);
+const byId=Object.fromEntries(POSES.map((p,i)=>[p.id,{...p,n:i+1}]));
+const fits=(p,who)=>who==='p'?p.who==='p':p.who.includes(who);
+const WHO={h:'Hombre',m:'Mujer',p:'Pareja'};
+const state={who:'h',place:'todos',list:[],idx:0,mode:'none',scale:1,flip:false,grid:true,x:.5,y:.9};
+try{const s=JSON.parse(localStorage.getItem('posesmty')||'{}');if(WHO[s.who])state.who=s.who;if(s.place==='todos'||PLACES.some(p=>p.id===s.place))state.place=s.place;}catch(e){}
+const remember=()=>{try{localStorage.setItem('posesmty',JSON.stringify({who:state.who,place:state.place}))}catch(e){}};
+
+const inFrame=(()=>{try{return window.self!==window.top}catch(e){return true}})();
+const policy=document.featurePolicy||document.permissionsPolicy;
+const canLive=!!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)&&window.isSecureContext&&
+  (!inFrame||!!(policy&&policy.allowsFeature&&policy.allowsFeature('camera')));
+
+/* ---------- Catálogo ---------- */
+function thumb(p,g){
+  const b=build(p,g),h=Math.max(198,b.h),w=Math.max(h*.8,b.w),cx=b.x+b.w/2;
+  return `<svg viewBox="${(cx-w/2).toFixed(1)} ${(6-h).toFixed(1)} ${w.toFixed(1)} ${h.toFixed(1)}" preserveAspectRatio="xMidYMax meet" aria-hidden="true">${b.deco('#5b6d7c')}${b.body(0,'#ede4d3','#1b2530')}</svg>`;
+}
+function renderFilters(){
+  document.querySelectorAll('#who button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.who===state.who));
+  $('places').innerHTML=[{id:'todos',name:'Todas las poses'},...PLACES].map(p=>
+    `<button type="button" data-place="${p.id}" aria-pressed="${p.id===state.place}">${p.name}</button>`).join('');
+}
+function renderSheet(){
+  const pl=PLACES.find(p=>p.id===state.place);
+  const items=pl?pl.picks.map(([id,where])=>({p:byId[id],where})).filter(i=>fits(i.p,state.who))
+                :POSES.map(p=>({p:byId[p.id],where:''})).filter(i=>fits(i.p,state.who));
+  state.list=items;
+  const box=$('place');
+  if(pl){box.hidden=false;box.innerHTML=`<h2>${pl.name}</h2><p>${pl.sub}</p><p><b>Mejor hora:</b> ${pl.when}</p>`;}
+  else box.hidden=true;
+  const g=state.who==='p'?'h':state.who;
+  $('sheet').innerHTML=items.length?items.map((it,i)=>
+    `<button class="card" type="button" data-i="${i}">
+      <span class="frame">${thumb(it.p,g)}<span class="num">${String(it.p.n).padStart(2,'0')}</span>${it.p.who==='hm'?'':`<span class="tag">${WHO[it.p.who]}</span>`}</span>
+      <h3>${it.p.name}</h3>${it.where?`<p>${it.where}</p>`:''}
+    </button>`).join(''):'<p class="empty">No hay poses para esta combinación.</p>';
+  $('foot').textContent=canLive
+    ?'El visor usa tu cámara en vivo. También puedes cargar una foto del lugar.'
+    :'Aquí dentro de Claude la cámara en vivo está bloqueada: en el visor tomas una foto del lugar y la silueta se acomoda encima.';
+}
+
+/* ---------- Visor ---------- */
+const stage=$('stage'),ov=$('ov'),video=$('video'),photo=$('photo');
+let stream=null,facing='environment',bounds=null,photoURL=null,shotBlob=null;
+const cur=()=>state.list[state.idx];
+
+function showPose(){
+  const it=cur(),p=it.p,g=state.who==='p'?'h':state.who;
+  bounds=build(p,g);
+  ov.setAttribute('viewBox',`${bounds.x.toFixed(1)} ${bounds.y.toFixed(1)} ${bounds.w.toFixed(1)} ${bounds.h.toFixed(1)}`);
+  ov.innerHTML=bounds.body(3.4,'#0b1016')+bounds.deco('#ffffff')+bounds.body(0,'#ffffff','#0b1016');
+  $('vnum').textContent=`Pose ${String(p.n).padStart(2,'0')} · ${state.idx+1} de ${state.list.length}`;
+  $('vname').textContent=p.name;
+  const w=$('vwhere');w.hidden=!it.where;
+  if(it.where){const pl=PLACES.find(x=>x.id===state.place);w.innerHTML=`<b>Dónde, en ${pl.name}</b>${it.where}`;}
+  $('vhow').innerHTML=p.how.map((t,i)=>`<li><i>${i+1}</i><span>${t}</span></li>`).join('');
+  layout();
+}
+function layout(){
+  const W=stage.clientWidth,H=stage.clientHeight;if(!W||!H||!bounds)return;
+  const u=H*.6/170*state.scale*(cur().p.size||1);
+  const w=bounds.w*u,h=bounds.h*u;
+  ov.style.width=w+'px';ov.style.height=h+'px';
+  const left=state.x*W-w/2,top=state.y*H-(-bounds.y)*u;
+  ov.style.transform=`translate(${left.toFixed(1)}px,${top.toFixed(1)}px)${state.flip?' scaleX(-1)':''}`;
+}
+function setMode(m){
+  state.mode=m;
+  video.hidden=m!=='live';photo.hidden=m!=='photo';
+  $('shutter').hidden=m!=='live'||!$('shot').hidden;$('swap').hidden=m!=='live';
+  const hint=$('hint');
+  hint.hidden=m!=='none';
+  hint.textContent=canLive?'Abre la cámara o carga una foto del lugar. Luego arrastra la silueta para acomodarla.'
+                          :'Toma una foto del lugar y arrastra la silueta para ver dónde pararte.';
+  const B=(id,txt,go)=>`<button class="ib${go?' go':''}" type="button" data-src="${id}">${txt}</button>`;
+  $('src').innerHTML=(canLive?B('live',m==='live'?'Cámara encendida':'Cámara en vivo',m!=='live'):B('cam','Tomar foto del lugar',m==='none'))
+    +B('gal','Elegir de la galería')+(m!=='none'?B('none','Quitar fondo'):'');
+}
+function stopLive(){if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}video.srcObject=null;}
+async function startLive(){
+  stopLive();
+  try{
+    stream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:facing},width:{ideal:1920},height:{ideal:1080}}});
+    video.srcObject=stream;video.classList.toggle('mirror',facing==='user');
+    await video.play().catch(()=>{});
+    setMode('live');
+  }catch(e){
+    setMode('none');
+    $('hint').textContent='No se pudo abrir la cámara. Revisa el permiso de cámara del navegador o carga una foto de la galería.';
+  }
+}
+function loadPhoto(file){
+  if(!file)return;
+  stopLive();
+  if(photoURL)URL.revokeObjectURL(photoURL);
+  photoURL=URL.createObjectURL(file);photo.src=photoURL;setMode('photo');
+}
+function capture(){
+  const vw=video.videoWidth,vh=video.videoHeight,W=stage.clientWidth,H=stage.clientHeight;if(!vw||!W)return;
+  const s=Math.max(W/vw,H/vh),cw=W/s,ch=H/s,c=document.createElement('canvas');
+  c.width=Math.round(cw);c.height=Math.round(ch);
+  c.getContext('2d').drawImage(video,(vw-cw)/2,(vh-ch)/2,cw,ch,0,0,c.width,c.height);
+  c.toBlob(b=>{
+    if(!b)return;shotBlob=b;
+    const im=$('shotimg');if(im.src)URL.revokeObjectURL(im.src);im.src=URL.createObjectURL(b);
+    $('shot').hidden=false;$('shutter').hidden=true;
+  },'image/jpeg',.93);
+}
+async function savePhoto(){
+  if(!shotBlob)return;
+  const name=`monterrey-${Date.now()}.jpg`;
+  try{
+    const file=new File([shotBlob],name,{type:'image/jpeg'});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file]});closeShot();return;}
+  }catch(e){if(e&&e.name==='AbortError')return;}
+  const a=document.createElement('a');a.href=URL.createObjectURL(shotBlob);a.download=name;
+  document.body.appendChild(a);a.click();a.remove();closeShot();
+}
+function closeShot(){shotBlob=null;$('shot').hidden=true;$('shutter').hidden=state.mode!=='live';}
+
+function openVisor(i){
+  state.idx=i;state.x=.5;state.y=.9;state.scale=1;state.flip=false;$('tam').value=1;
+  $('flip').setAttribute('aria-pressed','false');
+  $('visor').hidden=false;document.body.style.overflow='hidden';
+  setMode(state.mode==='photo'&&photoURL?'photo':'none');
+  showPose();$('close').focus();
+}
+function closeVisor(){stopLive();closeShot();if(state.mode==='live')state.mode='none';$('visor').hidden=true;document.body.style.overflow='';}
+function step(d){const n=state.list.length;state.idx=(state.idx+d+n)%n;showPose();}
+
+/* ---------- Eventos ---------- */
+$('who').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;state.who=b.dataset.who;remember();renderFilters();renderSheet();});
+$('places').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;state.place=b.dataset.place;remember();renderFilters();renderSheet();
+  const a=$('places').querySelector('[aria-pressed="true"]');if(a&&a.scrollIntoView)a.scrollIntoView({block:'nearest',inline:'center'});});
+$('sheet').addEventListener('click',e=>{const c=e.target.closest('.card');if(c)openVisor(+c.dataset.i);});
+$('close').addEventListener('click',closeVisor);
+$('prev').addEventListener('click',()=>step(-1));
+$('next').addEventListener('click',()=>step(1));
+$('tam').addEventListener('input',e=>{state.scale=+e.target.value;layout();});
+$('flip').addEventListener('click',e=>{state.flip=!state.flip;e.currentTarget.setAttribute('aria-pressed',state.flip);layout();});
+$('gridb').addEventListener('click',e=>{state.grid=!state.grid;e.currentTarget.setAttribute('aria-pressed',state.grid);$('gridl').hidden=!state.grid;});
+$('swap').addEventListener('click',()=>{facing=facing==='environment'?'user':'environment';startLive();});
+$('shutter').addEventListener('click',capture);
+$('save').addEventListener('click',savePhoto);
+$('discard').addEventListener('click',closeShot);
+$('src').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;const s=b.dataset.src;
+  if(s==='live'){if(state.mode!=='live')startLive();}
+  else if(s==='cam')$('camInput').click();
+  else if(s==='gal')$('galInput').click();
+  else{stopLive();closeShot();setMode('none');}
+});
+for(const id of ['camInput','galInput'])$(id).addEventListener('change',e=>{loadPhoto(e.target.files&&e.target.files[0]);e.target.value='';});
+document.addEventListener('keydown',e=>{if($('visor').hidden)return;if(e.key==='Escape')closeVisor();if(e.key==='ArrowLeft')step(-1);if(e.key==='ArrowRight')step(1);});
+window.addEventListener('resize',layout);
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&state.mode==='live'){stopLive();setMode('none');}});
+
+/* Arrastrar con un dedo, pellizcar con dos */
+const ptr=new Map();let pinch=null;
+stage.addEventListener('pointerdown',e=>{
+  if(e.target.closest('button'))return;
+  try{stage.setPointerCapture(e.pointerId)}catch(_){}
+  ptr.set(e.pointerId,[e.clientX,e.clientY]);
+  if(ptr.size===2){const [a,b]=[...ptr.values()];pinch={d:Math.hypot(a[0]-b[0],a[1]-b[1]),s:state.scale};}
+});
+stage.addEventListener('pointermove',e=>{
+  const last=ptr.get(e.pointerId);if(!last)return;
+  const W=stage.clientWidth,H=stage.clientHeight;
+  if(ptr.size===1){
+    state.x=Math.min(1.1,Math.max(-.1,state.x+(e.clientX-last[0])/W));
+    state.y=Math.min(1.15,Math.max(.1,state.y+(e.clientY-last[1])/H));
+  }
+  ptr.set(e.pointerId,[e.clientX,e.clientY]);
+  if(ptr.size===2&&pinch){
+    const [a,b]=[...ptr.values()];
+    state.scale=Math.min(2.4,Math.max(.3,pinch.s*Math.hypot(a[0]-b[0],a[1]-b[1])/pinch.d));
+    $('tam').value=state.scale;
+  }
+  layout();
+});
+const up=e=>{ptr.delete(e.pointerId);if(ptr.size<2)pinch=null;};
+stage.addEventListener('pointerup',up);stage.addEventListener('pointercancel',up);
+
+renderFilters();renderSheet();
+</script>
+</body>
+</html>
